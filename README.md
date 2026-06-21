@@ -4,7 +4,7 @@ Solución al **"Reto del Arquitecto"** para el proceso de selección de **Monole
 
 ---
 
-## 🏛️ Arquitectura del Backend: Hexagonal (Ports & Adapters)
+## Arquitectura del Backend: Hexagonal (Ports & Adapters)
 
 El backend ha sido diseñado aplicando **Domain-Driven Design (DDD)** y **Arquitectura Hexagonal** con el objetivo de aislar por completo la lógica de negocio de las tecnologías de infraestructura (Bases de datos, servicios de e-mail, frameworks HTTP).
 
@@ -17,7 +17,7 @@ La solución de C# (`MonolegalChallenge.sln`) se divide en 4 capas estrictas:
 
 ---
 
-## 🚀 Roadmap y Estado Actual (v0.1.0 - Sprint 1)
+## Roadmap y Estado Actual (v0.1.0 - Sprint 1)
 
 Aplicando un desarrollo iterativo por entregas atómicas:
 
@@ -31,7 +31,7 @@ Aplicando un desarrollo iterativo por entregas atómicas:
 
 ---
 
-## ⚙️ Instrucciones de Auditoría (Fase 1)
+## Instrucciones de Auditoría (Fase 1)
 
 Si deseas verificar la salud del código en este punto del desarrollo, necesitas el [SDK de .NET 8.0](https://dotnet.microsoft.com/es-es/download/dotnet/8.0).
 
