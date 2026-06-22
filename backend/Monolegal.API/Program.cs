@@ -1,13 +1,19 @@
+using Monolegal.Domain.Repositories;
+using Monolegal.Domain.Services;
+using Monolegal.Infrastructure.Repositories;
+using Monolegal.Infrastructure.Services;
+
 var builder = WebApplication.CreateBuilder(args);
 
-// Add services to the container.
-// Learn more about configuring Swagger/OpenAPI at https://aka.ms/aspnetcore/swashbuckle
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
 
+builder.Services.AddScoped<IInvoiceRepository, MongoInvoiceRepository>();
+builder.Services.AddScoped<IEmailService, MailtrapEmailService>();
+builder.Services.AddScoped<InvoiceProcessingService>();
+
 var app = builder.Build();
 
-// Configure the HTTP request pipeline.
 if (app.Environment.IsDevelopment())
 {
     app.UseSwagger();
@@ -16,29 +22,23 @@ if (app.Environment.IsDevelopment())
 
 app.UseHttpsRedirection();
 
-var summaries = new[]
-{
-    "Freezing", "Bracing", "Chilly", "Cool", "Mild", "Warm", "Balmy", "Hot", "Sweltering", "Scorching"
-};
 
-app.MapGet("/weatherforecast", () =>
+app.MapGet("/api/invoices", async (IInvoiceRepository repository) =>
 {
-    var forecast =  Enumerable.Range(1, 5).Select(index =>
-        new WeatherForecast
-        (
-            DateOnly.FromDateTime(DateTime.Now.AddDays(index)),
-            Random.Shared.Next(-20, 55),
-            summaries[Random.Shared.Next(summaries.Length)]
-        ))
-        .ToArray();
-    return forecast;
+    var invoices = await repository.GetAllInvoicesAsync();
+    return Results.Ok(invoices);
 })
-.WithName("GetWeatherForecast")
+.WithName("GetInvoices")
 .WithOpenApi();
 
-app.Run();
 
-record WeatherForecast(DateOnly Date, int TemperatureC, string? Summary)
+app.MapPost("/api/invoices/process-reminders", async (InvoiceProcessingService processingService) =>
 {
-    public int TemperatureF => 32 + (int)(TemperatureC / 0.5556);
-}
+    await processingService.ProcessPendingInvoicesAsync();
+    return Results.Ok(new { message = "Vigilancia ejecutada: Correos enviados y Mongo actualizado correctamente." });
+})
+.WithName("ProcessReminders")
+.WithOpenApi();
+
+
+app.Run();

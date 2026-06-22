@@ -34,27 +34,30 @@ public class MongoInvoiceRepository : IInvoiceRepository
 
     public MongoInvoiceRepository()
     {
-      
-      var connectionString = "mongodb+srv://Paula:Monolegal2026@monolegalcluster.5jb1jxr.mongodb.net/?appName=MonolegalCluster";
-        
+        var connectionString = "mongodb+srv://Paula:Monolegal2026@monolegalcluster.5jb1jxr.mongodb.net/?appName=MonolegalCluster";
         var client = new MongoClient(connectionString);
         var database = client.GetDatabase("MonolegalDB");
-        _invoiceCollection = database.GetCollection<MongoInvoiceModel>("Invoices");
+        
+        _invoiceCollection = database.GetCollection<MongoInvoiceModel>("Invoice");
     }
 
     public async Task<List<Invoice>> GetAllInvoicesAsync()
     {
-        
-           var mongoData = await _invoiceCollection.Find(_ => true).ToListAsync();
+        var mongoData = await _invoiceCollection.Find(_ => true).ToListAsync();
+        return mongoData.Select(m => new Invoice { Id = m.Id, ClientId = m.ClientId, ClientName = m.ClientName, ClientEmail = m.ClientEmail, Amount = m.Amount, Status = m.Status }).ToList();
+    }
 
-         return mongoData.Select(m => new Invoice
-        {
-            Id = m.Id,
-            ClientId = m.ClientId,
-            ClientName = m.ClientName,
-            ClientEmail = m.ClientEmail,
-            Amount = m.Amount,
-            Status = m.Status
-        }).ToList();
+    public async Task<List<Invoice>> GetPendingRemindersAsync()
+    {
+        var filter = Builders<MongoInvoiceModel>.Filter.In(x => x.Status, new[] { "primerrecordatorio", "segundorecordatorio" });
+        var mongoData = await _invoiceCollection.Find(filter).ToListAsync();
+        return mongoData.Select(m => new Invoice { Id = m.Id, ClientId = m.ClientId, ClientName = m.ClientName, ClientEmail = m.ClientEmail, Amount = m.Amount, Status = m.Status }).ToList();
+    }
+
+    public async Task UpdateStatusAsync(string invoiceId, string newStatus)
+    {
+        var filter = Builders<MongoInvoiceModel>.Filter.Eq(x => x.Id, invoiceId);
+        var update = Builders<MongoInvoiceModel>.Update.Set(x => x.Status, newStatus);
+        await _invoiceCollection.UpdateOneAsync(filter, update);
     }
 }
