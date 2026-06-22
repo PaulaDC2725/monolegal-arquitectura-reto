@@ -18,10 +18,10 @@ public class InvoiceProcessingService
     {
         var pendingInvoices = await _repository.GetPendingRemindersAsync();
 
-        foreach (var invoice in pendingInvoices)
-        {
-            if (string.IsNullOrEmpty(invoice.Id)) continue;
+        var invoice = pendingInvoices.FirstOrDefault();
 
+        if (invoice != null)
+        {
             string nextStatus = invoice.Status switch
             {
                 "primerrecordatorio" => "segundorecordatorio",
@@ -34,15 +34,13 @@ public class InvoiceProcessingService
                 try
                 {
                     await _emailService.SendReminderAsync(invoice.ClientEmail, invoice.ClientName, nextStatus);
+                    await _repository.UpdateStatusAsync(invoice.Id!, nextStatus);
+                    Console.WriteLine($"[ÉXITO] Correo enviado a {invoice.ClientEmail}");
                 }
                 catch (Exception ex)
                 {
-                    Console.WriteLine($"[ADVERTENCIA SMTP] No se pudo enviar el mail a {invoice.ClientName}. Razón: {ex.Message}");
+                    Console.WriteLine($"[FALLO] No se pudo enviar el correo: {ex.Message}");
                 }
-
-                await _repository.UpdateStatusAsync(invoice.Id, nextStatus);
-
-                await Task.Delay(2000); 
             }
         }
     }
