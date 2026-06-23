@@ -6,6 +6,8 @@ using Monolegal.Infrastructure.Configuration;
 
 var builder = WebApplication.CreateBuilder(args);
 
+//CORS Configuration
+
 builder.Services.AddCors(options =>
 {
     options.AddPolicy("PermitirFrontendAngular", policy =>
@@ -14,6 +16,14 @@ builder.Services.AddCors(options =>
               .AllowAnyHeader()
               .AllowAnyMethod();
     });
+});
+
+builder.Services.AddCors(options =>
+{
+    options.AddPolicy("AllowVercel",
+        policy => policy.WithOrigins("https://monolegal-cobranzas.vercel.app")
+                        .AllowAnyMethod()
+                        .AllowAnyHeader());
 });
 
 builder.Services.AddEndpointsApiExplorer();
@@ -30,6 +40,7 @@ builder.Services.AddScoped<InvoiceProcessingService>();
 var app = builder.Build();
 
 app.UseCors("PermitirFrontendAngular");
+app.UseCors("AllowVercel");
 
 if (app.Environment.IsDevelopment())
 {
