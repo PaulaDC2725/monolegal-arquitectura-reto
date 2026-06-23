@@ -10,7 +10,7 @@ var builder = WebApplication.CreateBuilder(args);
 
 builder.Services.AddCors(options =>
 {
-    options.AddPolicy("PermitirFrontendAngular", policy =>
+    options.AddPolicy("AllowAngularFrontend", policy =>
     {
         policy.WithOrigins("http://localhost:4200")
               .AllowAnyHeader()
@@ -39,13 +39,17 @@ builder.Services.AddScoped<InvoiceProcessingService>();
 
 var app = builder.Build();
 
-app.UseCors("PermitirFrontendAngular");
+app.UseCors("AllowAngularFrontend");
 app.UseCors("AllowVercel");
 
 if (app.Environment.IsDevelopment())
 {
     app.UseSwagger();
-    app.UseSwaggerUI();
+    app.UseSwaggerUI(c =>
+    {
+        c.SwaggerEndpoint("/swagger/v1/swagger.json", "Monolegal API V1");
+        c.RoutePrefix = string.Empty; 
+    });
 }
 
 app.MapGet("/api/invoices", async (IInvoiceRepository repository) =>
