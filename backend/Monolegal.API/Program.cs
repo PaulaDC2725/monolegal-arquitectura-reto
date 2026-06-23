@@ -76,4 +76,20 @@ app.MapPost("/api/invoices/process-reminders", async (InvoiceProcessingService p
 .WithName("ProcessReminders")
 .WithOpenApi();
 
+app.MapPost("/api/invoices", async (Monolegal.Domain.Entities.Invoice invoice, Monolegal.Domain.Repositories.IInvoiceRepository repository) =>
+{
+    try
+    {
+        await repository.CreateAsync(invoice);
+
+        return Results.Ok(invoice);
+    }
+    catch (Exception ex)
+    {
+        return Results.Problem($"Error interno al guardar en MongoDB: {ex.Message}");
+    }
+})
+.WithName("CreateInvoice")
+.WithOpenApi();
+
 app.Run();

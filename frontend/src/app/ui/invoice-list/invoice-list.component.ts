@@ -40,7 +40,7 @@ export class InvoiceListComponent implements OnInit {
         this.cronReport = { success: true, text: res.message };
         
         // Disparamos el popup de advertencia de SPAM
-        this.showToast('En los próximos minutos te debe estar llegando un correo (no olvides revisar SPAM). Puede tardar varios minutos.');
+        this.showToast('En los próximos minutos le deben estar llegando un correo a cada responsable de factura (no olvides que deben revisar SPAM). Puede tardar varios minutos.');
 
         this.reload(); // Pedimos a Mongo los datos actualizados
       },

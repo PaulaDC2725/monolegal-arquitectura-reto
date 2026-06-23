@@ -37,7 +37,7 @@ public class MongoInvoiceRepository : IInvoiceRepository
         var connectionString = "mongodb+srv://Paula:Monolegal2026@monolegalcluster.5jb1jxr.mongodb.net/?appName=MonolegalCluster";
         var client = new MongoClient(connectionString);
         var database = client.GetDatabase("MonolegalDB");
-        
+
         _invoiceCollection = database.GetCollection<MongoInvoiceModel>("Invoice");
     }
 
@@ -59,5 +59,23 @@ public class MongoInvoiceRepository : IInvoiceRepository
         var filter = Builders<MongoInvoiceModel>.Filter.Eq(x => x.Id, invoiceId);
         var update = Builders<MongoInvoiceModel>.Update.Set(x => x.Status, newStatus);
         await _invoiceCollection.UpdateOneAsync(filter, update);
+    }
+
+    public async Task CreateAsync(Invoice invoice)
+    {
+        invoice.Status = "primerrecordatorio";
+
+        var mongoModel = new MongoInvoiceModel
+        {
+            ClientId = string.IsNullOrEmpty(invoice.ClientId) ? Guid.NewGuid().ToString().Substring(0, 6) : invoice.ClientId,
+            ClientName = invoice.ClientName,
+            ClientEmail = invoice.ClientEmail,
+            Amount = invoice.Amount,
+            Status = invoice.Status
+        };
+        await _invoiceCollection.InsertOneAsync(mongoModel);
+
+        invoice.Id = mongoModel.Id;
+        invoice.ClientId = mongoModel.ClientId;
     }
 }

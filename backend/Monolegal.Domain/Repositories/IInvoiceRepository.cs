@@ -7,4 +7,5 @@ public interface IInvoiceRepository
     Task<List<Invoice>> GetAllInvoicesAsync();
     Task<List<Invoice>> GetPendingRemindersAsync();
     Task UpdateStatusAsync(string invoiceId, string newStatus);
+    Task CreateAsync(Entities.Invoice invoice);
 }
