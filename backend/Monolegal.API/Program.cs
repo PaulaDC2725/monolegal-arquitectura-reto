@@ -10,21 +10,17 @@ var builder = WebApplication.CreateBuilder(args);
 
 builder.Services.AddCors(options =>
 {
+    options.AddPolicy("AllowVercel", policy =>
+        policy.WithOrigins("https://monolegal-cobranzas.vercel.app")
+              .AllowAnyHeader()
+              .AllowAnyMethod());
+
     options.AddPolicy("AllowAngularFrontend", policy =>
-    {
         policy.WithOrigins("http://localhost:4200")
               .AllowAnyHeader()
-              .AllowAnyMethod();
-    });
+              .AllowAnyMethod());
 });
 
-builder.Services.AddCors(options =>
-{
-    options.AddPolicy("AllowVercel",
-        policy => policy.WithOrigins("https://monolegal-cobranzas.vercel.app")
-                        .AllowAnyMethod()
-                        .AllowAnyHeader());
-});
 
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
