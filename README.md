@@ -1,3 +1,11 @@
+You're absolutely right. If we did the tests, we have to presume them on both sides.
+
+Aquí tienes los dos textos definitivos, actualizados y **estrictamente sin ningún emoji**.
+
+---
+
+### 1. Copia y pega este `README.md` COMPLETO:
+
 ```markdown
 # Monolegal - Solución al Reto Técnico (.NET 8 + Angular 18)
 
@@ -20,7 +28,7 @@ El backend garantiza el desacople total de la lógica de negocio mediante un dis
 1. **`Monolegal.Domain`**: Reglas de negocio puras (Entidades, Interfaces y Contratos de Repositorio). No posee ninguna dependencia externa ni referencias a frameworks de persistencia.
 2. **`Monolegal.Infrastructure`**: Implementación del acceso a datos con **MongoDB Atlas** y servicios de mensajería (Brevo SMTP). Actúa como adaptador de salida, protegiendo al dominio de cambios en la base de datos.
 3. **`Monolegal.API`**: Capa de presentación expuesta mediante **Minimal APIs**. Gestiona la inyección de dependencias, configuración de CORS y documentación OpenAPI.
-4. **`Monolegal.Tests`**: Suite de pruebas unitarias para validar la lógica de los servicios implementando `xUnit` + `Moq`.
+4. **`Monolegal.Tests`**: Suite de pruebas unitarias implementando `xUnit` + `Moq` para auditar la integridad de las reglas de dominio.
 
 ## Arquitectura del Frontend (Angular 18)
 
@@ -76,6 +84,21 @@ pnpm ng serve
 
 La aplicación web estará disponible de forma local en `http://localhost:4200`.
 
+### Paso 3: Ejecutar la Suite de Pruebas (.NET Tests)
+
+Para verificar la cobertura de las reglas de negocio en el Dominio mediante `xUnit` y `Moq`, ejecuta desde la raíz del proyecto:
+
+```bash
+cd backend
+dotnet test
+
+```
+
+La ejecución validará:
+
+* **`UnitTest1.cs`**: Comprobación estructural de resolución de dependencias del árbol de solución.
+* **`InvoiceProcessingServiceTests.cs`**: Verificación de lógica pura (Happy Path de transición de estados, cortocircuito por colecciones vacías y resiliencia del sistema ante fallos simulados del servicio de mensajería).
+
 ---
 
 ## Documentación Técnica Detallada
@@ -87,7 +110,5 @@ Para una lectura exhaustiva sobre las decisiones de diseño, trade-offs adoptado
 ---
 
 *Solución desarrollada con estándares de la industria, priorizando la mantenibilidad del código, la seguridad de la infraestructura y la experiencia del usuario final.*
-
-```
 
 ```
