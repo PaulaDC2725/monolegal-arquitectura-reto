@@ -1,0 +1,234 @@
+/* ==========================================================================
+   1. BASE MÓVIL
+   ========================================================================== */
+.list-wrapper {
+  background: #ffffff; 
+  border-radius: 12px; 
+  padding: 16px; 
+  border: 1px solid #e2e8f0;
+  position: relative;
+
+  .list-head {
+    display: flex; 
+    flex-direction: column; 
+    gap: 12px;
+    padding-bottom: 14px; 
+    border-bottom: 1px solid #f1f5f9; 
+    margin-bottom: 14px;
+
+    h3 { margin: 0; font-size: 1.1rem; color: #0f172a; }
+    p { margin: 2px 0 0; font-size: 0.8rem; color: #64748b; }
+    
+    .btn-cron {
+      background: #2563eb; 
+      color: white; 
+      border: none; 
+      padding: 12px;
+      border-radius: 8px; 
+      font-weight: 600; 
+      display: flex; 
+      justify-content: center; 
+      align-items: center;
+      gap: 8px;
+      transition: all 0.15s ease;
+
+      &:disabled { opacity: 0.5; cursor: not-allowed; }
+      &:hover:not(:disabled) { background: #1d4ed8; }
+
+      .spinner { 
+        width: 14px; 
+        height: 14px; 
+        border: 2px solid #fff; 
+        border-top-color: transparent; 
+        border-radius: 50%; 
+        animation: spin 0.6s linear infinite; 
+      }
+    }
+  }
+}
+
+.responsive-table {
+  width: 100%; 
+  border-collapse: collapse;
+
+  thead { 
+    position: absolute; 
+    width: 1px; 
+    height: 1px; 
+    overflow: hidden; 
+    clip: rect(0,0,0,0); 
+  }
+
+  tbody tr {
+    display: block; 
+    border: 1px solid #e2e8f0; 
+    border-radius: 8px;
+    padding: 12px; 
+    margin-bottom: 12px; 
+    background: #faf8f5;
+  }
+
+  td {
+    display: flex; 
+    justify-content: space-between; 
+    align-items: center;
+    padding: 6px 0; 
+    font-size: 0.9rem; 
+    color: #334155;
+    border-bottom: 1px solid #f1f5f9;
+
+    &:last-child { border-bottom: none; }
+
+    /* Inyectamos el título de la columna a la izquierda en vista móvil */
+    &::before { 
+      content: attr(data-label); 
+      font-weight: 600; 
+      font-size: 0.75rem; 
+      color: #64748b; 
+      text-transform: uppercase; 
+    }
+  }
+}
+
+.badge {
+  padding: 4px 8px; 
+  border-radius: 4px; 
+  font-size: 0.75rem; 
+  font-weight: 700; 
+  text-transform: uppercase;
+
+  &[data-status="primerrecordatorio"] { background: #fef9c3; color: #854d0e; }
+  &[data-status="segundorecordatorio"] { background: #ffedd5; color: #9a3412; }
+  &[data-status="desactivado"] { background: #f1f5f9; color: #475569; }
+}
+
+.cron-banner { 
+  padding: 10px; 
+  border-radius: 6px; 
+  margin-bottom: 14px; 
+  font-size: 0.85rem; 
+  background: #fef2f2; 
+  color: #991b1b; 
+  &.ok { background: #f0fdf4; color: #166534; } 
+}
+
+.empty { 
+  text-align: center; 
+  padding: 30px; 
+  color: #94a3b8; 
+  font-size: 0.9rem; 
+}
+
+/* ==========================================================================
+   2. EXPANSIÓN A ESCRITORIO (768px+)
+   ========================================================================== */
+@media (min-width: 768px) {
+  .list-wrapper {
+    padding: 24px;
+    .list-head { 
+      flex-direction: row; 
+      justify-content: space-between; 
+      align-items: center; 
+      .btn-cron { cursor: pointer; } 
+    }
+  }
+
+  .responsive-table {
+    thead { 
+      position: static; 
+      width: auto; 
+      height: auto; 
+      clip: auto; 
+      overflow: visible; 
+      tr { border-bottom: 2px solid #cbd5e1; } 
+      th { text-align: left; padding: 12px 10px; font-size: 0.85rem; color: #475569; } 
+    }
+    tbody tr { 
+      display: table-row; 
+      border: none; 
+      border-bottom: 1px solid #e2e8f0; 
+      background: transparent; 
+      &:hover { background: #f8fafc; } 
+    }
+    td { 
+      display: table-cell; 
+      padding: 14px 10px; 
+      border-bottom: none; 
+      &::before { content: none; } 
+    } 
+  }
+}
+
+/* ==========================================================================
+   3. NOTIFICACIÓN TOAST FLOTANTE (SaaS Style)
+   ========================================================================== */
+.toast-popup {
+  position: fixed;
+  bottom: 24px;
+  right: 24px;
+  z-index: 99999;
+  background-color: #0f172a; 
+  color: #f8fafc;
+  padding: 16px 20px;
+  border-radius: 12px;
+  box-shadow: 0 20px 25px -5px rgba(15, 23, 42, 0.5), 0 8px 10px -6px rgba(15, 23, 42, 0.5);
+  border: 1px solid #334155;
+  display: flex;
+  align-items: flex-start;
+  gap: 14px;
+  max-width: 380px;
+
+  .toast-icon {
+    font-size: 1.6rem;
+    line-height: 1;
+    filter: drop-shadow(0 2px 4px rgba(56, 189, 248, 0.3));
+  }
+
+  .toast-body {
+    flex: 1;
+
+    h4 {
+      margin: 0 0 4px;
+      font-size: 0.95rem;
+      font-weight: 600;
+      color: #38bdf8; 
+      letter-spacing: -0.01em;
+    }
+
+    p {
+      margin: 0;
+      font-size: 0.85rem;
+      line-height: 1.45;
+      color: #cbd5e1;
+    }
+  }
+
+  .toast-close {
+    background: transparent;
+    border: none;
+    color: #64748b;
+    font-size: 1rem;
+    padding: 2px 4px;
+    cursor: pointer;
+    transition: color 0.15s ease;
+    &:hover { color: #ffffff; }
+  }
+}
+
+@keyframes toast-enter {
+  0% { transform: translateY(120%) scale(0.9); opacity: 0; }
+  100% { transform: translateY(0) scale(1); opacity: 1; }
+}
+
+.animate-slide-up {
+  animation: toast-enter 0.35s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+}
+
+@media (max-width: 640px) {
+  .toast-popup {
+    bottom: 16px;
+    left: 16px;
+    right: 16px;
+    max-width: none;
+  }
+}

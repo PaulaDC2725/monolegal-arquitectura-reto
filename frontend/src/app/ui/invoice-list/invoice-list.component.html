@@ -1,0 +1,61 @@
+<div class="list-wrapper">
+  <div class="list-head">
+    <div>
+      <h3>Vigilancia Activa</h3>
+      <p>Base de datos MongoDB</p>
+    </div>
+
+    <button class="btn-cron" (click)="onExecuteCron()" [disabled]="isTriggering">
+      @if (isTriggering) { <span class="spinner"></span> }
+       {{ isTriggering ? 'Procesando...' : 'Ejecutar Vigilancia' }}
+    </button>
+  </div>
+
+  @if (cronReport) {
+    <div class="cron-banner" [class.ok]="cronReport.success">{{ cronReport.text }}</div>
+  }
+
+  @if (invoices$ | async; as list) {
+    @if (list.length === 0) {
+      <div class="empty">No hay expedientes pendientes de cobro.</div>
+    } @else {
+      
+      <table class="responsive-table">
+        <thead>
+          <tr>
+            <th>ID</th>
+            <th>Cliente</th>
+            <th>Correo</th>
+            <th>Monto</th>
+            <th>Estado</th>
+          </tr>
+        </thead>
+        <tbody>
+          @for (item of list; track item.id) {
+            <tr>
+              <td data-label="ID">{{ item.id?.substring(18, 24) || '---' }}</td>
+              <td data-label="Cliente"><strong>{{ item.clientName }}</strong></td>
+              <td data-label="Correo">{{ item.clientEmail }}</td>
+              <td data-label="Monto">${{ item.amount }}</td>
+              <td data-label="Estado">
+                <span class="badge" [attr.data-status]="item.status">{{ item.status }}</span>
+              </td>
+            </tr>
+          }
+        </tbody>
+      </table>
+
+    }
+  }
+
+  @if (toastMessage) {
+    <div class="toast-popup animate-slide-up">
+      <div class="toast-icon">📫</div>
+      <div class="toast-body">
+        <h4>Vigilancia disparada con éxito</h4>
+        <p>{{ toastMessage }}</p>
+      </div>
+      <button class="toast-close" (click)="toastMessage = null" aria-label="Cerrar">✕</button>
+    </div>
+  }
+</div>

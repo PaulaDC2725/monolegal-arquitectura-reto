@@ -1,0 +1,38 @@
+<div class="form-card">
+  <div class="card-header">
+    <h3>📄 Nuevo Expediente</h3>
+    <p>Alta de factura en MongoDB</p>
+  </div>
+
+  <form [formGroup]="form" (ngSubmit)="onSubmit()" class="mobile-form">
+    
+    <div class="field-unit">
+      <label>Razón Social *</label>
+      <input type="text" formControlName="clientName" placeholder="Empresa Alfa">
+      @if (form.get('clientName')?.touched && form.get('clientName')?.invalid) {
+        <span class="error">Requiere mínimo 3 caracteres</span>
+      }
+    </div>
+
+    <div class="field-unit">
+      <label>Correo de Notificación *</label>
+      <input type="email" formControlName="clientEmail" placeholder="contacto@empresa.com">
+      @if (form.get('clientEmail')?.touched && form.get('clientEmail')?.invalid) {
+        <span class="error">Ingrese un email válido</span>
+      }
+    </div>
+
+    <div class="field-unit">
+      <label>Monto Total ($) *</label>
+      <input type="number" formControlName="amount">
+    </div>
+
+    @if (successMessage) { <div class="feedback success">{{ successMessage }}</div> }
+    @if (errorMessage) { <div class="feedback error">{{ errorMessage }}</div> }
+
+    <button type="submit" class="btn-submit" [disabled]="isSubmitting">
+      @if (isSubmitting) { <span class="spinner"></span> }
+      {{ isSubmitting ? 'Guardando...' : 'Registrar Deuda' }}
+    </button>
+  </form>
+</div>

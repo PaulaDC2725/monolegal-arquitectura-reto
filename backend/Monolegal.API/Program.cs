@@ -6,6 +6,16 @@ using Monolegal.Infrastructure.Configuration;
 
 var builder = WebApplication.CreateBuilder(args);
 
+builder.Services.AddCors(options =>
+{
+    options.AddPolicy("PermitirFrontendAngular", policy =>
+    {
+        policy.WithOrigins("http://localhost:4200")
+              .AllowAnyHeader()
+              .AllowAnyMethod();
+    });
+});
+
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
 
@@ -18,6 +28,8 @@ builder.Services.AddScoped<IEmailService, BrevoEmailService>();
 builder.Services.AddScoped<InvoiceProcessingService>();
 
 var app = builder.Build();
+
+app.UseCors("PermitirFrontendAngular");
 
 if (app.Environment.IsDevelopment())
 {
