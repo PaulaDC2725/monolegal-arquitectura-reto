@@ -53,6 +53,10 @@ public class InvoiceProcessingService(IInvoiceRepository repository, IEmailServi
             }
             catch (Exception ex)
             {
+
+                Console.WriteLine($"[FATAL ERROR] Invoice failed: {invoice.Id} | Customer: {invoice.ClientId}");
+                results.Add($"[FALLO] Factura {invoice.Id}: {ex.Message}");
+
                 Console.WriteLine($"[ERROR CRÍTICO] Factura {invoice.Id}: {ex.Message}");
                 if (ex.InnerException != null)
                 {
