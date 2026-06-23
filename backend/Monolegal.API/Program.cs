@@ -10,17 +10,11 @@ var builder = WebApplication.CreateBuilder(args);
 
 builder.Services.AddCors(options =>
 {
-    options.AddPolicy("AllowVercel", policy =>
-        policy.WithOrigins("https://monolegal-cobranzas.vercel.app")
-              .AllowAnyHeader()
-              .AllowAnyMethod());
-
-    options.AddPolicy("AllowAngularFrontend", policy =>
-        policy.WithOrigins("http://localhost:4200")
+    options.AddPolicy("AllowAllSpecified", policy =>
+        policy.WithOrigins("https://monolegal-cobranzas.vercel.app", "http://localhost:4200", "https://monolegal-arquitectura-reto.onrender.com")
               .AllowAnyHeader()
               .AllowAnyMethod());
 });
-
 
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
@@ -35,8 +29,7 @@ builder.Services.AddScoped<InvoiceProcessingService>();
 
 var app = builder.Build();
 
-app.UseCors("AllowAngularFrontend");
-app.UseCors("AllowVercel");
+app.UseCors("AllowAllSpecified");
 
 app.UseSwagger();
 app.UseSwaggerUI(c =>
