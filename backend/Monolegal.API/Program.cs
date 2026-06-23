@@ -42,15 +42,12 @@ var app = builder.Build();
 app.UseCors("AllowAngularFrontend");
 app.UseCors("AllowVercel");
 
-if (app.Environment.IsDevelopment())
+app.UseSwagger();
+app.UseSwaggerUI(c =>
 {
-    app.UseSwagger();
-    app.UseSwaggerUI(c =>
-    {
-        c.SwaggerEndpoint("/swagger/v1/swagger.json", "Monolegal API V1");
-        c.RoutePrefix = string.Empty; 
-    });
-}
+    c.SwaggerEndpoint("/swagger/v1/swagger.json", "Monolegal API V1");
+    c.RoutePrefix = string.Empty;
+});
 
 app.MapGet("/api/invoices", async (IInvoiceRepository repository) =>
 {
