@@ -2,14 +2,19 @@ using Monolegal.Domain.Repositories;
 using Monolegal.Domain.Services;
 using Monolegal.Infrastructure.Repositories;
 using Monolegal.Infrastructure.Services;
+using Monolegal.Infrastructure.Configuration;
 
 var builder = WebApplication.CreateBuilder(args);
 
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
 
+builder.Services.Configure<EmailConfiguration>(builder.Configuration.GetSection("EmailConfiguration"));
+
 builder.Services.AddScoped<IInvoiceRepository, MongoInvoiceRepository>();
-builder.Services.AddScoped<IEmailService, MailtrapEmailService>();
+
+builder.Services.AddScoped<IEmailService, BrevoEmailService>();
+
 builder.Services.AddScoped<InvoiceProcessingService>();
 
 var app = builder.Build();
@@ -20,8 +25,6 @@ if (app.Environment.IsDevelopment())
     app.UseSwaggerUI();
 }
 
-
-
 app.MapGet("/api/invoices", async (IInvoiceRepository repository) =>
 {
     var invoices = await repository.GetAllInvoicesAsync();
@@ -30,14 +33,35 @@ app.MapGet("/api/invoices", async (IInvoiceRepository repository) =>
 .WithName("GetInvoices")
 .WithOpenApi();
 
-
 app.MapPost("/api/invoices/process-reminders", async (InvoiceProcessingService processingService) =>
 {
-    await processingService.ProcessPendingInvoicesAsync();
-    return Results.Ok(new { message = "Vigilancia ejecutada: Correos enviados y Mongo actualizado correctamente." });
+    try
+    {
+        var results = await processingService.ProcessPendingInvoicesAsync();
+
+        bool hasFailures = results.Any(r => r.Contains("[FALLO]"));
+
+        if (hasFailures)
+        {
+            return Results.BadRequest(new
+            {
+                message = "El proceso finalizó con algunas advertencias.",
+                details = results
+            });
+        }
+
+        return Results.Ok(new
+        {
+            message = "Vigilancia completada exitosamente.",
+            details = results
+        });
+    }
+    catch (Exception ex)
+    {
+        return Results.Problem($"Error crítico de sistema: {ex.Message}");
+    }
 })
 .WithName("ProcessReminders")
 .WithOpenApi();
-
 
 app.Run();

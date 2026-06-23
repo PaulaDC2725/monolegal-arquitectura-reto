@@ -3,25 +3,29 @@ using Monolegal.Domain.Repositories;
 
 namespace Monolegal.Domain.Services;
 
-public class InvoiceProcessingService
+public class InvoiceProcessingService(IInvoiceRepository repository, IEmailService emailService)
 {
-    private readonly IInvoiceRepository _repository;
-    private readonly IEmailService _emailService;
+    private readonly IInvoiceRepository _repository = repository;
+    private readonly IEmailService _emailService = emailService;
 
-    public InvoiceProcessingService(IInvoiceRepository repository, IEmailService emailService)
+    public async Task<List<string>> ProcessPendingInvoicesAsync()
     {
-        _repository = repository;
-        _emailService = emailService;
-    }
-
-    public async Task ProcessPendingInvoicesAsync()
-    {
+        Console.WriteLine("[DEBUG] Iniciando búsqueda de facturas pendientes en MongoDB...");
         var pendingInvoices = await _repository.GetPendingRemindersAsync();
+        var results = new List<string>();
 
-        var invoice = pendingInvoices.FirstOrDefault();
+        Console.WriteLine($"[DEBUG] Se han encontrado {pendingInvoices.Count} facturas para procesar.");
 
-        if (invoice != null)
+        if (!pendingInvoices.Any())
         {
+            results.Add("No hay expedientes pendientes.");
+            return results;
+        }
+
+        foreach (var invoice in pendingInvoices)
+        {
+            Console.WriteLine($"[DEBUG] Procesando factura: {invoice.Id} | Estado actual: {invoice.Status} | Cliente: {invoice.ClientName}");
+
             string nextStatus = invoice.Status switch
             {
                 "primerrecordatorio" => "segundorecordatorio",
@@ -29,19 +33,36 @@ public class InvoiceProcessingService
                 _ => invoice.Status
             };
 
-            if (nextStatus != invoice.Status)
+            if (nextStatus == invoice.Status)
             {
-                try
+                Console.WriteLine($"[DEBUG] La factura {invoice.Id} ya alcanzó su estado final ({invoice.Status}). Saltando...");
+                continue;
+            }
+
+            try
+            {
+                Console.WriteLine($"[DEBUG] Intentando enviar correo a: {invoice.ClientEmail}...");
+                await _emailService.SendReminderAsync(invoice.ClientEmail, invoice.ClientName, nextStatus);
+                Console.WriteLine($"[DEBUG] Correo enviado exitosamente a {invoice.ClientEmail}.");
+
+                Console.WriteLine($"[DEBUG] Actualizando estado en MongoDB para ID: {invoice.Id} a '{nextStatus}'...");
+                await _repository.UpdateStatusAsync(invoice.Id!, nextStatus);
+                Console.WriteLine($"[DEBUG] Base de datos actualizada correctamente para factura {invoice.Id}.");
+
+                results.Add($"[ÉXITO] Factura {invoice.Id}: Correo enviado, estado -> {nextStatus}");
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"[ERROR CRÍTICO] Factura {invoice.Id}: {ex.Message}");
+                if (ex.InnerException != null)
                 {
-                    await _emailService.SendReminderAsync(invoice.ClientEmail, invoice.ClientName, nextStatus);
-                    await _repository.UpdateStatusAsync(invoice.Id!, nextStatus);
-                    Console.WriteLine($"[ÉXITO] Correo enviado a {invoice.ClientEmail}");
+                    Console.WriteLine($"[DETALLE ERROR] {ex.InnerException.Message}");
                 }
-                catch (Exception ex)
-                {
-                    Console.WriteLine($"[FALLO] No se pudo enviar el correo: {ex.Message}");
-                }
+                results.Add($"[FALLO] Factura {invoice.Id}: {ex.Message}");
             }
         }
+
+        Console.WriteLine("[DEBUG] Proceso de vigilancia finalizado.");
+        return results;
     }
 }

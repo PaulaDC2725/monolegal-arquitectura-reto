@@ -144,3 +144,6 @@ vite.config.ts.timestamp-*
 
 **/bin/
 **/obj/
+
+.vs
+appsettings.json
