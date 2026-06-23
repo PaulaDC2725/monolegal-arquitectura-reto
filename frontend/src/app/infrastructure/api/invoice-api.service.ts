@@ -4,12 +4,14 @@ import { Observable } from 'rxjs';
 import { InvoicePort } from '../../core/ports/invoice.port';
 import { Invoice, ProcessRemindersResponse } from '../../core/models/invoice.model';
 
+// Importamos el objeto de entorno
+import { environment } from '../../../environments/environment';
+
 @Injectable()
 export class InvoiceApiService extends InvoicePort {
   private readonly http = inject(HttpClient);
   
-  
-  private readonly apiUrl = 'http://localhost:5184/api/invoices';
+  private readonly apiUrl = environment.apiUrl;
 
   override getAll(): Observable<Invoice[]> {
     return this.http.get<Invoice[]>(this.apiUrl);
