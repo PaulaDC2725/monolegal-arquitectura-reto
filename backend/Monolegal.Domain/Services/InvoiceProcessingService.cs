@@ -1,72 +1,66 @@
+using Microsoft.Extensions.Logging;
+using Monolegal.Domain.Constants;
 using Monolegal.Domain.Entities;
 using Monolegal.Domain.Repositories;
 
 namespace Monolegal.Domain.Services;
 
-public class InvoiceProcessingService(IInvoiceRepository repository, IEmailService emailService)
+public class InvoiceProcessingService : IInvoiceProcessingService
 {
-    private readonly IInvoiceRepository _repository = repository;
-    private readonly IEmailService _emailService = emailService;
+    private readonly IInvoiceRepository _repository;
+    private readonly IEmailService _emailService;
+    private readonly ILogger<InvoiceProcessingService> _logger;
+
+    public InvoiceProcessingService(
+        IInvoiceRepository repository,
+        IEmailService emailService,
+        ILogger<InvoiceProcessingService> logger)
+    {
+        _repository = repository;
+        _emailService = emailService;
+        _logger = logger;
+    }
 
     public async Task<List<string>> ProcessPendingInvoicesAsync()
     {
-        Console.WriteLine("[DEBUG] Iniciando búsqueda de facturas pendientes en MongoDB...");
-        var pendingInvoices = await _repository.GetPendingRemindersAsync();
+        _logger.LogInformation("Iniciando el procesamiento automático de recordatorios procesales.");
         var results = new List<string>();
 
-        Console.WriteLine($"[DEBUG] Se han encontrado {pendingInvoices.Count} facturas para procesar.");
+        var pendingInvoices = await _repository.GetPendingRemindersAsync();
 
-        if (!pendingInvoices.Any())
+        if (pendingInvoices == null || pendingInvoices.Count == 0)
         {
-            results.Add("No hay expedientes pendientes.");
+            _logger.LogInformation("No se encontraron facturas pendientes para notificar.");
+            results.Add("No hay expedientes pendientes de notificación.");
             return results;
         }
 
         foreach (var invoice in pendingInvoices)
         {
-            Console.WriteLine($"[DEBUG] Procesando factura: {invoice.Id} | Estado actual: {invoice.Status} | Cliente: {invoice.ClientName}");
+            _logger.LogInformation("Evaluando factura ID: {InvoiceId}, Estado actual: {Status}", invoice.Id, invoice.Status);
+            string previousStatus = invoice.Status;
 
-            string nextStatus = invoice.Status switch
+            if (invoice.TransitionToNextStage())
             {
-                "primerrecordatorio" => "segundorecordatorio",
-                "segundorecordatorio" => "desactivado",
-                _ => invoice.Status
-            };
-
-            if (nextStatus == invoice.Status)
-            {
-                Console.WriteLine($"[DEBUG] La factura {invoice.Id} ya alcanzó su estado final ({invoice.Status}). Saltando...");
-                continue;
-            }
-
-            try
-            {
-                Console.WriteLine($"[DEBUG] Intentando enviar correo a: {invoice.ClientEmail}...");
-                await _emailService.SendReminderAsync(invoice.ClientEmail, invoice.ClientName, nextStatus);
-                Console.WriteLine($"[DEBUG] Correo enviado exitosamente a {invoice.ClientEmail}.");
-
-                Console.WriteLine($"[DEBUG] Actualizando estado en MongoDB para ID: {invoice.Id} a '{nextStatus}'...");
-                await _repository.UpdateStatusAsync(invoice.Id!, nextStatus);
-                Console.WriteLine($"[DEBUG] Base de datos actualizada correctamente para factura {invoice.Id}.");
-
-                results.Add($"[ÉXITO] Factura {invoice.Id}: Correo enviado, estado -> {nextStatus}");
-            }
-            catch (Exception ex)
-            {
-
-                Console.WriteLine($"[FATAL ERROR] Invoice failed: {invoice.Id} | Customer: {invoice.ClientId}");
-                results.Add($"[FALLO] Factura {invoice.Id}: {ex.Message}");
-
-                Console.WriteLine($"[ERROR CRÍTICO] Factura {invoice.Id}: {ex.Message}");
-                if (ex.InnerException != null)
+                try
                 {
-                    Console.WriteLine($"[DETALLE ERROR] {ex.InnerException.Message}");
+                    await _emailService.SendReminderAsync(invoice.ClientEmail, invoice.ClientName, invoice.Status);
+                    results.Add($"[ÉXITO] Factura {invoice.Id}: Transición de '{previousStatus}' a '{invoice.Status}'. Correo enviado.");
                 }
-                results.Add($"[FALLO] Factura {invoice.Id}: {ex.Message}");
+                catch (Exception ex)
+                {
+                    _logger.LogWarning(ex, "Fallo de transporte SMTP al enviar correo para factura {InvoiceId}. El estado se persistirá de todas formas.", invoice.Id);
+                    results.Add($"[ADVERTENCIA] Factura {invoice.Id}: Transición a '{invoice.Status}'. Falló el envío de correo, pero el estado fue actualizado en BD.");
+                }
+
+                await _repository.UpdateStatusAsync(invoice.Id, invoice.Status);
+            }
+            else
+            {
+                _logger.LogWarning("La factura {InvoiceId} se encuentra en un estado no transicionable.", invoice.Id);
             }
         }
 
-        Console.WriteLine("[DEBUG] Proceso de vigilancia finalizado.");
         return results;
     }
 }

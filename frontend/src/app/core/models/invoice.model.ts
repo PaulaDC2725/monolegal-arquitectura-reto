@@ -10,3 +10,9 @@ export interface ProcessRemindersResponse {
   message: string;
   details?: string[];
 }
+
+export interface InvoiceStatus {
+  FirstRemember: 'primerrecordatorio';
+  SegundoRecordatorio: 'segundorecordatorio';
+  Desactivado: 'desactivado';
+}

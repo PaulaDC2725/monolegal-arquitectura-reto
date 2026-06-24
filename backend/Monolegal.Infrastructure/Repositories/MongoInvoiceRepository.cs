@@ -3,6 +3,7 @@ using MongoDB.Bson.Serialization.Attributes;
 using MongoDB.Driver;
 using Monolegal.Domain.Entities;
 using Monolegal.Domain.Repositories;
+using Monolegal.Domain.Constants;
 
 namespace Monolegal.Infrastructure.Repositories;
 
@@ -49,7 +50,7 @@ public class MongoInvoiceRepository : IInvoiceRepository
 
     public async Task<List<Invoice>> GetPendingRemindersAsync()
     {
-        var filter = Builders<MongoInvoiceModel>.Filter.In(x => x.Status, new[] { "primerrecordatorio", "segundorecordatorio" });
+        var filter = Builders<MongoInvoiceModel>.Filter.In(x => x.Status, new[] { InvoiceStatus.PrimerRecordatorio, InvoiceStatus.SegundoRecordatorio });
         var mongoData = await _invoiceCollection.Find(filter).ToListAsync();
         return mongoData.Select(m => new Invoice { Id = m.Id, ClientId = m.ClientId, ClientName = m.ClientName, ClientEmail = m.ClientEmail, Amount = m.Amount, Status = m.Status }).ToList();
     }
@@ -63,7 +64,7 @@ public class MongoInvoiceRepository : IInvoiceRepository
 
     public async Task CreateAsync(Invoice invoice)
     {
-        invoice.Status = "primerrecordatorio";
+        invoice.Status = InvoiceStatus.PrimerRecordatorio;
 
         var mongoModel = new MongoInvoiceModel
         {

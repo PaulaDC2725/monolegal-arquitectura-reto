@@ -25,7 +25,7 @@ builder.Services.AddScoped<IInvoiceRepository, MongoInvoiceRepository>();
 
 builder.Services.AddScoped<IEmailService, BrevoEmailService>();
 
-builder.Services.AddScoped<InvoiceProcessingService>();
+builder.Services.AddScoped<IInvoiceProcessingService, InvoiceProcessingService>();
 
 var app = builder.Build();
 
@@ -46,7 +46,7 @@ app.MapGet("/api/invoices", async (IInvoiceRepository repository) =>
 .WithName("GetInvoices")
 .WithOpenApi();
 
-app.MapPost("/api/invoices/process-reminders", async (InvoiceProcessingService processingService) =>
+app.MapPost("/api/invoices/process-reminders", async (IInvoiceProcessingService processingService) =>
 {
     try
     {
