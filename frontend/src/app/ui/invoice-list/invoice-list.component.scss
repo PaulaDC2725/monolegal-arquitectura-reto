@@ -129,7 +129,7 @@ $status-pallet: (
   text-transform: uppercase;
 
   /*Bucle dinámico para declarar las clases de cada estado*/
-  @each $status-name, $colors in $status-palette {
+  @each $status-name, $colors in $status-pallet {
     &[data-status="#{$status-name}"] {
       background: map-get($colors, bg);
       color: map-get($colors, text);
